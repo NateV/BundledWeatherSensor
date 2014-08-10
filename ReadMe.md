@@ -1,4 +1,4 @@
-#Wifi Weather Station Version: Bundled
+#Weather Station Version: Bundled
 
 This version connects the sensor to an Arduino, and then connects the Arduino 
 directly to a Raspberry Pi. The the Arduino sends sensor data over the Serial
