@@ -7,14 +7,16 @@
 import sqlite3 as sql
 import serial
 import re as regex
-
+import os
 
 dbName = 'WeatherData'
 sensorTable = "SensorData"
 schema = "CREATE TABLE " + sensorTable + " ( id INTEGER PRIMARY KEY, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, temp TEXT, humidity TEXT);"
 conn = sql.connect(dbName + ".db")
 
-requestPattern=regex.compile(".*\?temp=(.*)&humidity=(.*)")
+dataPattern=regex.compile(".*\?temp=(.*)&humidity=(.*)")
+offPattern = regex.compile(".*TURN_OFF.*")
+offSignalCounter = 0;
 
 #Check if the database exists. If not, create it.
 def checkDB(): 
@@ -49,16 +51,24 @@ cursor = conn.cursor()
 try: 
 	while(1):
 	  data = ser.readline() #should be of the form "?temp=45&humidity=32"
-	  match = requestPattern.match(data)
-	  if match: 
-		temp = match.group(1)
-		humidity = match.group(2)
+	  dataMatch = dataPattern.match(data)
+	  offMatch = offPattern.match(data)
+	  if dataMatch: 
+		#reset the offSignalCounter to 0 so that short presses of the button don't
+		# turn off the device. Only a single long press should do that. 
+		offSignalCounter = 0 
+		temp = dataMatch.group(1)
+		humidity = dataMatch.group(2)
 		insertString = "INSERT INTO " + sensorTable + " (temp, humidity) VALUES ( '" + temp + "', '" + humidity + "');"
 		print(insertString)
 		cursor.execute(insertString)
 		conn.commit()
 		print(cursor)
 		print("Sensor heard and recorded.")
+	  elif offMatch:
+	    offSignalCounter += 1
+	    if offSignalCounter > 5:
+	      raise Exception ("Shutting Down")
 	  else: 
 		print("No sensor reading heard.")
 	##end of while loop
@@ -66,6 +76,12 @@ except (KeyboardInterrupt, SystemExit):
   print("Exiting.")
   conn.commit()
   conn.close() 
+except Exception as e:
+  print(e.args[0])
+  conn.commit()
+  conn.close()
+  #keep commented unless using on the PI. Don't want to shut down the dev computer!
+  #os.system("sudo shutdown -h now")
 
 
 
