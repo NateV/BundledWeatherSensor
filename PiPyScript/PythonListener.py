@@ -6,7 +6,7 @@
 
 import sqlite3 as sql
 import serial
-import regex
+import re as regex
 
 
 dbName = 'WeatherData'
@@ -32,6 +32,7 @@ def checkDB():
 
 #Find the serial port that the arduino is plugged into.
 # For now, have to do this manually before running the script.
+# To figure it out manually, use "ls /dev/tty*"
 def findSerial():
   return "/dev/tty.usbmodem1411"
 # end of findSerial
