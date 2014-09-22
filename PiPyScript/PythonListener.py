@@ -2,7 +2,7 @@
 # Arduino and temp/humidity sensor. It will store the sensor information in a sqlite
 # database. 
 
-
+import config
 
 import sqlite3 as sql
 import serial
@@ -36,7 +36,8 @@ def checkDB():
 # For now, have to do this manually before running the script.
 # To figure it out manually, use "ls /dev/tty*"
 def findSerial():
-  return "/dev/tty.usbmodem1411"
+  return config.LOCAL_SERIAL_PORT
+  #return "/dev/tty.usbmodem1411"
 # end of findSerial
 
 #initialize
